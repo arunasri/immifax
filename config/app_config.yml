@@ -1,0 +1,13 @@
+common:
+  page_title_base: 'visa-info.com'
+  hoptoad_api_key: xxxxxxxxxxxxxxxxxxx
+
+development:
+  bucket_name: page41_development
+
+staging:
+  bucket_name: page41_staging
+
+production:
+  bucket_name: page41_production
+
