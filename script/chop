@@ -1,0 +1,28 @@
+#!/bin/bash
+ 
+output=$2
+
+if [ -d $output ]; then 
+    rm -rf $output
+fi
+
+mkdir -p $output
+ 
+# create a temporary file containing the header without
+# the content:
+head -n 1 $1 > header.csv
+ 
+# create a temporary file containing the content without
+# the header:
+tail -n +1 $1 > content.csv
+ 
+# split the content file into multiple files of 5 lines each:
+split -l 5000 content.csv "$output/data_"
+ 
+# loop through the new split files, adding the header
+# and a '.csv' extension:
+for f in `ls $output/*`; do cat header.csv $f > $f.csv; rm $f; done;
+ 
+# remove the temporary files:
+rm header.csv
+rm content.csv
