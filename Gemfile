@@ -18,7 +18,11 @@ group :development, :test do
 
   gem "factory_girl_rails"
   gem "database_cleaner"
-  gem "shoulda"
+
+  gem "rspec"
+  gem "rspec-core"
+  gem "rspec-expectations"
+  gem "rspec-mocks"
   gem "rspec-rails", ">= 2.0.1"
   gem "cucumber-rails", ">= 0.3.2"
   gem "capybara", "= 0.4.0"

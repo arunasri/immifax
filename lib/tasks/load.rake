@@ -68,7 +68,7 @@ namespace :visa do
         state     = fields["STATE"]
         zipcode   = fields["POSTAL_CODE"]
 
-        unless company = Company.find_by_name(employer_name)
+        unless company = Company.retrieve_by_code(employer_name)
           company = Company.new(:name => employer_name)
           company.address1 = address1
           company.address2 = address2
@@ -142,7 +142,7 @@ namespace :visa do
         state     = fields["State"]
         zipcode   = fields["Zip_Code"]
 
-        unless company = Company.find_by_name(employer_name)
+        unless company = Company.retrieve_by_code(employer_name)
           company = Company.new(:name => employer_name)
           company.address1 = address1
           company.address2 = address2
@@ -219,7 +219,7 @@ namespace :visa do
         state     = fields["STATE"]
         zipcode   = fields["POSTAL_CODE"]
 
-        unless company = Company.find_by_name(employer_name)
+        unless company = Company.retrieve_by_code(employer_name)
           company = Company.new(:name => employer_name)
           company.address1 = address1
           company.address2 = address2
@@ -294,7 +294,7 @@ namespace :visa do
         state     = fields["EMPLOYER_STATE"]
         zipcode   = fields["EMPLOYER_POSTAL_CODE"]
 
-        unless company = Company.find_by_name(employer_name)
+        unless company = Company.retrieve_by_code(employer_name)
           company = Company.new(:name => employer_name)
           company.address1 = address1
           company.address2 = address2
@@ -367,7 +367,7 @@ namespace :visa do
         state     = fields["LCA_CASE_EMPLOYER_STATE"]
         zipcode   = fields["LCA_CASE_EMPLOYER_POSTAL_CODE"]
 
-        unless company = Company.find_by_name(employer_name)
+        unless company = Company.retrieve_by_code(employer_name)
           company = Company.new(:name => employer_name)
           company.address1 = address1
           company.city     = city
@@ -440,7 +440,7 @@ namespace :visa do
         state     = fields["Emp_State"]
         zipcode   = fields["Emp_Postal_Code"]
 
-        unless company = Company.find_by_name(employer_name)
+        unless company = Company.retrieve_by_code(employer_name)
           company = Company.new(:name => employer_name)
           company.address1 = address1
           company.address2 = address2
@@ -502,7 +502,7 @@ namespace :visa do
         state     = fields["Employer_State"]
         zipcode   = fields["Employer_Postal_Code"]
 
-        unless company = Company.find_by_name(employer_name)
+        unless company = Company.retrieve_by_code(employer_name)
           company = Company.new(:name => employer_name)
           company.address1 = address1
           company.address2 = address2
@@ -558,7 +558,7 @@ namespace :visa do
         state     = fields["Employer_State"]
         zipcode   = fields["Employer_Postal_Code"]
 
-        unless company = Company.find_by_name(employer_name)
+        unless company = Company.retrieve_by_code(employer_name)
           company = Company.new(:name => employer_name)
           company.address1 = address1
           company.address2 = address2
@@ -615,7 +615,7 @@ namespace :visa do
         state     = fields['EMPLOYER_STATE']
         zipcode   = fields['EMPLOYER_POSTAL_CODE']
 
-        unless company = Company.find_by_name(employer_name)
+        unless company = Company.retrieve_by_code(employer_name)
           company = Company.new(:name => employer_name)
           company.address1 = address1
           company.address2 = address2
@@ -680,7 +680,7 @@ namespace :visa do
         state     = fields['EMPLOYER_STATE']
         zipcode   = fields['EMPLOYER_POSTAL_CODE']
 
-        unless company = Company.find_by_name(employer_name)
+        unless company = Company.retrieve_by_code(employer_name)
           company = Company.new(:name => employer_name)
           company.address1 = address1
           company.address2 = address2
@@ -697,7 +697,6 @@ namespace :visa do
         perm.year = 2008
 
         decision_date = fields['DECISION_DATE'].to_date
-
         if !perm.new_record? && decision_date < perm.decision_on
           next
         end
@@ -745,7 +744,7 @@ namespace :visa do
         state     = fields['EMPLOYER STATE']
         zipcode   = fields['EMPLOYER POSTAL CODE']
 
-        unless company = Company.find_by_name(employer_name)
+        unless company = Company.retrieve_by_code(employer_name)
           company = Company.new(:name => employer_name)
           company.address1 = address1
           company.address2 = address2
@@ -761,7 +760,10 @@ namespace :visa do
         perm.employer = employer_name
         perm.year = 2009
 
-        raise unless perm.new_record?
+        decision_date = fields['DECISION DATE'].to_date
+        if !perm.new_record? && decision_date < perm.decision_on
+          next
+        end
         perm.address1 = address1
         perm.address2 = address2
         perm.city     = city
@@ -805,7 +807,7 @@ namespace :visa do
         state     = fields['EMPLOYER_STATE']
         zipcode   = fields['EMPLOYER_POSTAL_CODE']
 
-        unless company = Company.find_by_name(employer_name)
+        unless company = Company.retrieve_by_code(employer_name)
           company = Company.new(:name => employer_name)
           company.address1 = address1
           company.address2 = address2
@@ -833,8 +835,12 @@ namespace :visa do
         perm.application_type   = fields['APPLICATION_TYPE']
         perm.case_status        = fields['CASE_STATUS']
 
-        #2009 file has this as key
-        perm.decision_on        = (fields['DECISION_DATE'] || fields['DECISION DATE']).to_date
+        decision_date = fields['DECISION_DATE'].to_date
+        if !perm.new_record? && decision_date < perm.decision_on
+          next
+        end
+
+        perm.decision_on        = fields['DECISION_DATE'].to_date
         perm.sector             = fields['US_ECONOMIC_SECTOR']
         perm.naics_us_code      = fields['2007_NAICS_US_CODE']
         perm.naics_us_title     = fields['2007_NAICS_US_TITLE']

@@ -1,5 +1,5 @@
 require 'spec_helper'
 
-describe H1bs do
+describe Perm do
   pending "add some examples to (or delete) #{__FILE__}"
 end
