@@ -19,9 +19,381 @@ namespace :visa do
           yield(row)
           putc '.'
         end
-
       end
       system `rm -rf #{TMP_DIR}`
+    end
+
+    task :h1b_efile_2009 => :environment do
+      unzip_to_temp("H1B_efile_FY09_text.zip")
+      each_row_of_data do | row |
+        fields    = row.to_hash
+        next if fields.keys == fields.values
+        employer_name   = fields["Employer_Name"]
+      end
+    end
+
+    task :h1b_2006 => :environment do
+      unzip_to_temp("H1B_efile_FY06_text.zip")
+      each_row_of_data do | row |
+        fields    = row.to_hash
+        next if fields.keys == fields.values
+
+        employer_name   = fields["NAME"]
+
+        address1  = fields["ADDRESS"]
+        address2  = fields["ADDRESS2"]
+        city      = fields["CITY"]
+        state     = fields["STATE"]
+        zipcode   = fields["POSTAL_CODE"]
+
+        unless company = Company.find_by_name(employer_name)
+          company = Company.new(:name => employer_name)
+          company.address1 = address1
+          company.address2 = address2
+          company.city     = city
+          company.state    = state
+          company.zip_code = zipcode
+          company.save
+        end
+
+        case_no = fields["CASE_NO"]
+
+        h1b  = company.h1bs.find_or_initialize_by_case_number(case_no)
+        h1b.employer = employer_name
+        h1b.year = 2006
+        h1b.address1 = address1
+        h1b.address2 = address2
+        h1b.city     = city
+        h1b.state    = state
+        h1b.zip_code = zipcode
+
+
+        h1b.city1             = fields["CITY_1"]
+        h1b.state1            = fields["STATE_1"]
+        h1b.pw_amount1        = fields["PREVAILING_WAGE_1"]
+        h1b.pw_source1        = fields["WAGE_SOURCE_1"]
+        h1b.pw_other_source1  = fields["OTHER_WAGE_SOURCE_1"]
+        h1b.pw_published_year1= fields["YR_SOURCE_PUB_1"]
+
+        h1b.city2             = fields["CITY_2"]
+        h1b.state2            = fields["STATE_2"]
+        h1b.pw_amount2        = fields["PREVAILING_WAGE_2"]
+        h1b.pw_source2        = fields["WAGE_SOURCE_2"]
+        h1b.pw_other_source2  = fields["OTHER_WAGE_SOURCE_2"]
+        h1b.pw_published_year2= fields["YR_SOURCE_PUB_2"]
+
+        h1b.salary1             = fields["WAGE_RATE_1"]
+        h1b.salary_unit1        = fields["RATE_PER_1"]
+        h1b.salary_max1         = fields["MAX_RATE_1"]
+        h1b.salary2             = fields["WAGE_RATE_2"]
+        h1b.salary_unit2        = fields["RATE_PER_2"]
+        h1b.salary_max2         = fields["MAX_RATE_2"]
+
+        h1b.requested_start_date  = fields["BEGIN_DATE"].try(:to_date)
+        h1b.requested_end_date    = fields["END_DATE"].try(:to_date)
+
+        h1b.approved_start_date  = fields["CERTIFIED_BEGIN_DATE"].try(:to_date)
+        h1b.approved_end_date    = fields["CERTIFIED_END_DATE"].try(:to_date)
+
+        h1b.job_title             = fields["JOB_TITLE"]
+        h1b.applied_on            = fields["SUBMITTED_DATE"].try(:to_date)
+        h1b.decision_on           = fields["DOL_DECISION_DATE"].try(:to_date)
+        h1b.case_status           = fields["APPROVAL_STATUS"]
+        h1b.total_workers         = fields["NBR_IMMIGRANTS"]
+        h1b.full_time_position    = fields["PART_TIME_1"].try(:=~,/n/i).present?
+        h1b.withdrawn             = fields["Withdrawn"].try(:=~,/y/i).present?
+
+        h1b.save
+      end
+    end
+
+    task :h1b_2007 => :environment do
+      unzip_to_temp("H1B_efile_FY07_text.zip")
+      each_row_of_data do | row |
+        fields    = row.to_hash
+        next if fields.keys == fields.values
+
+        employer_name   = fields["Employer_Name"]
+
+        address1  = fields["Address_1"]
+        address2  = fields["Address_2"]
+        city      = fields["City"]
+        state     = fields["State"]
+        zipcode   = fields["Zip_Code"]
+
+        unless company = Company.find_by_name(employer_name)
+          company = Company.new(:name => employer_name)
+          company.address1 = address1
+          company.address2 = address2
+          company.city     = city
+          company.state    = state
+          company.zip_code = zipcode
+          company.save
+        end
+
+        case_no = fields["Case Number"]
+
+        h1b  = company.h1bs.find_or_initialize_by_case_number(case_no)
+        h1b.employer = employer_name
+        h1b.year = 2007
+        h1b.address1 = address1
+        h1b.address2 = address2
+        h1b.city     = city
+        h1b.state    = state
+        h1b.zip_code = zipcode
+
+
+        h1b.city1             = fields["Work_City_1"]
+        h1b.state1            = fields["Work_State_1"]
+        h1b.pw_amount1        = fields["Prevailing_Wage_1"]
+        h1b.pw_source1        = fields["Prevailing_Wage_Source_1"]
+        h1b.pw_other_source1  = fields["Other_Wage_Source_1"]
+        h1b.pw_published_year1= fields["Year_Source_Published_1"]
+
+        h1b.city2             = fields["Work_City_2"]
+        h1b.state2            = fields["Work_State_2"]
+        h1b.pw_amount2        = fields["Prevailing_Wage_2"]
+        h1b.pw_source2        = fields["Prevailing_Wage_Source_2"]
+        h1b.pw_other_source2  = fields["Other_Wage_Source_2"]
+        h1b.pw_published_year2= fields["Year_Source_Published_2"]
+
+        h1b.salary1             = fields["Wage_Rate_From_1"]
+        h1b.salary_unit1        = fields["Wage_Rate_Per_1"]
+        h1b.salary_max1         = fields["Wage_Rate_To_1"]
+        h1b.salary2             = fields["Wage_Rate_From_2"]
+        h1b.salary_unit2        = fields["Wage_Rate_Per_2"]
+        h1b.salary_max2         = fields["Wage_Rate_To_2"]
+
+        h1b.requested_start_date  = fields["Begin_Date"].try(:to_date)
+        h1b.requested_end_date    = fields["End_Date"].try(:to_date)
+
+        h1b.approved_start_date  = fields["Certified_Begin_Date"].try(:to_date)
+        h1b.approved_end_date    = fields["Certified_End_Date"].try(:to_date)
+
+        h1b.job_title             = fields["Job_Title"]
+        h1b.applied_on            = fields["Submitted_Date"].try(:to_date)
+        h1b.decision_on           = fields["DOL_Decision_Date"].try(:to_date)
+        h1b.case_status           = fields["Case_Status"]
+        h1b.total_workers         = fields["Nbr_Immigrants"]
+        h1b.full_time_position    = fields["Part_Time_1"].try(:=~,/n/i).present?
+        h1b.withdrawn             = fields["Withdrawn"].try(:=~,/y/i).present?
+
+        h1b.save
+      end
+    end
+
+    task :h1b_2008 => :environment do
+      unzip_to_temp("H1B_efile_FY08_text.zip")
+      each_row_of_data do | row |
+        fields    = row.to_hash
+        next if fields.keys == fields.values
+        employer_name   = fields["NAME"]
+
+        address1  = fields["ADDRESS1"]
+        address2  = fields["ADDRESS2"]
+        city      = fields["CITY"]
+        state     = fields["STATE"]
+        zipcode   = fields["POSTAL_CODE"]
+
+        unless company = Company.find_by_name(employer_name)
+          company = Company.new(:name => employer_name)
+          company.address1 = address1
+          company.address2 = address2
+          company.city     = city
+          company.state    = state
+          company.zip_code = zipcode
+          company.save
+        end
+
+        case_no = fields["CASE_NO"]
+
+        h1b  = company.h1bs.find_or_initialize_by_case_number(case_no)
+        h1b.employer = employer_name
+        h1b.year = 2008
+        h1b.address1 = address1
+        h1b.address2 = address2
+        h1b.city     = city
+        h1b.state    = state
+        h1b.zip_code = zipcode
+
+
+        h1b.city1             = fields["CITY_1"]
+        h1b.state1            = fields["STATE_1"]
+        h1b.pw_amount1        = fields["PREVAILING_WAGE_1"]
+        h1b.pw_unit1          = fields["PW_UNIT_1"]
+        h1b.pw_source1        = fields["WAGE_SOURCE_1"]
+        h1b.pw_other_source1  = fields["OTHER_WAGE_SOURCE_1"]
+        h1b.pw_published_year1= fields["YR_SOURCE_PUB_1"]
+
+        h1b.city2             = fields["CITY_2"]
+        h1b.state2            = fields["STATE_2"]
+        h1b.pw_amount1        = fields["PREVAILING_WAGE_2"]
+        h1b.pw_unit2          = fields["PW_UNIT_2"]
+        h1b.pw_source2        = fields["WAGE_SOURCE_2"]
+        h1b.pw_other_source2  = fields["OTHER_WAGE_SOURCE_2"]
+        h1b.pw_published_year2= fields["YR_SOURCE_PUB_2"]
+
+        h1b.salary1             = fields["WAGE_RATE_1"]
+        h1b.salary_unit1        = fields["RATE_PER_1"]
+        h1b.salary_max1         = fields["MAX_RATE_1"]
+        h1b.salary2             = fields["WAGE_RATE_2"]
+        h1b.salary_unit2        = fields["RATE_PER_2"]
+        h1b.salary_max2         = fields["MAX_RATE_2"]
+
+        h1b.requested_start_date  = fields["BEGIN_DATE"]
+        h1b.requested_end_date    = fields["END_DATE"]
+
+        h1b.approved_start_date  = fields["CERTIFIED_BEGIN_DATE"]
+        h1b.approved_end_date    = fields["CERTIFIED_END_DATE"]
+
+        h1b.job_title             = fields["JOB_TITILE"]
+        h1b.job_code              = fields["JOB_CODE"]
+        h1b.applied_on            = fields["SUBMITTED_DATE"].to_date
+        h1b.decision_on           = fields["DOL_DECISION_DATE"].to_date
+        h1b.visa_class            = fields["VISA_CLASS"]
+        h1b.case_status           = fields["APPROVAL_STATUS"]
+        h1b.total_workers         = fields["NUM_IMMIGRANTS"]
+        h1b.full_time_position    = fields["PART_TIME_1"].try(:=~,/n/i).present?
+
+        h1b.save
+      end
+    end
+
+    task :h1b_2009 => :environment do
+      unzip_to_temp("ICERT_LCA_FY2009_TEXT.zip")
+      each_row_of_data do | row |
+        fields    = row.to_hash
+        next if fields.keys == fields.values
+        employer_name   = fields["EMPLOYER_NAME"]
+
+        address1  = fields["EMPLOYER_ADDRESS"]
+        city      = fields["EMPLOYER_CITY"]
+        state     = fields["EMPLOYER_STATE"]
+        zipcode   = fields["EMPLOYER_POSTAL_CODE"]
+
+        unless company = Company.find_by_name(employer_name)
+          company = Company.new(:name => employer_name)
+          company.address1 = address1
+          company.city     = city
+          company.state    = state
+          company.zip_code = zipcode
+          company.save
+        end
+
+        case_no = fields["LCA_CASE_NUMBER"]
+
+        h1b  = company.h1bs.find_or_initialize_by_case_number(case_no)
+        h1b.employer = employer_name
+        h1b.year = 2009
+        h1b.address1 = address1
+        h1b.city     = city
+        h1b.state    = state
+        h1b.zip_code = zipcode
+
+
+        h1b.city1             = fields["WORKLOC1_CITY"]
+        h1b.state1            = fields["WORKLOC1_STATE"]
+        h1b.pw_amount1        = fields["PW_1"]
+        h1b.pw_unit1          = fields["PW_UNIT_1"]
+        h1b.pw_source1        = fields["SOURCE_1"]
+        h1b.pw_other_source1  = fields["PW1_OTHERSOURCE"]
+        h1b.pw_published_year1= fields["PW1_YR_PUB"]
+
+        h1b.city2             = fields["WORKLOC2_CITY"]
+        h1b.state2            = fields["WORKLOC2_STATE"]
+        h1b.pw_amount2        = fields["PW_2"]
+        h1b.pw_unit2          = fields["PW_UNIT_2"]
+        h1b.pw_source2        = fields["SOURCE_2"]
+        h1b.pw_other_source2  = fields["PW2_OTHERSOURCE"]
+        h1b.pw_published_year2= fields["PW2_YR_PUB"]
+
+        h1b.salary1             = fields["WAGE_RATE"]
+        h1b.salary_max1         = fields["MAX_RATE"]
+        h1b.salary_unit1        = fields["WAGE_RATE"]
+
+        h1b.requested_start_date  = fields["BEGIN_DATE"]
+        h1b.requested_end_date    = fields["END_DATE"]
+        h1b.job_title             = fields["JOB_TITILE"]
+        h1b.soc_code              = fields["SOC_CODE"]
+        h1b.soc_name              = fields["SOC_NAME"]
+        h1b.applied_on            = fields["SUBMITTED_DATE"].to_date
+        h1b.decision_on           = fields["DOL_DECISION_DATE"].to_date
+        h1b.visa_class            = fields["VISA_CLASS"]
+        h1b.case_status           = fields["STATUS"]
+        h1b.total_workers         = fields["TOTAL_WORKERS_REQ"]
+        h1b.full_time_position    = fields["FULL_TIME"].try(:=~,/y/i).present?
+
+        h1b.save
+      end
+    end
+
+    task :h1b_2010 => :environment do
+      unzip_to_temp("H1B_2010_TEXT.zip")
+      each_row_of_data do | row |
+        fields    = row.to_hash
+        next if fields.keys == fields.values
+        employer_name   = fields["LCA_CASE_EMPLOYER_NAME"]
+
+        address1  = fields["LCA_CASE_EMPLOYER_ADDRESS"]
+        city      = fields["LCA_CASE_EMPLOYER_CITY"]
+        state     = fields["LCA_CASE_EMPLOYER_STATE"]
+        zipcode   = fields["LCA_CASE_EMPLOYER_POSTAL_CODE"]
+
+        unless company = Company.find_by_name(employer_name)
+          company = Company.new(:name => employer_name)
+          company.address1 = address1
+          company.city     = city
+          company.state    = state
+          company.zip_code = zipcode
+          company.save
+        end
+
+        case_no = fields["LCA_CASE_NUMBER"]
+
+        h1b  = company.h1bs.find_or_initialize_by_case_number(case_no)
+        h1b.employer = employer_name
+        h1b.year = 2010
+        h1b.address1 = address1
+        h1b.city     = city
+        h1b.state    = state
+        h1b.zip_code = zipcode
+
+
+        h1b.city1         = fields["LCA_CASE_WORKLOC1_CITY"]
+        h1b.city2         = fields["LCA_CASE_WORKLOC2_CITY"]
+        h1b.pw_amount1    = fields["PW_1"]
+        h1b.pw_unit1      = fields["PW_UNIT_1"]
+        h1b.pw_source1    = fields["PW_SOURCE_1"]
+        h1b.state1        = fields["LCA_CASE_WORKLOC1_STATE"]
+        h1b.state2        = fields["LCA_CASE_WORKLOC2_STATE"]
+        h1b.pw_amount2    = fields["PW_2"]
+        h1b.pw_unit2      = fields["PW_UNIT_2"]
+        h1b.pw_source2    = fields["PW_SOURCE_2"]
+        h1b.salary1       = fields["LCA_CASE_WAGE_RATE_FROM"]
+        h1b.salary_max1   = fields["LCA_CASE_WAGE_RATE_TO"]
+        h1b.salary_unit1  = fields["LCA_CASE_WAGE_RATE_UNIT"]
+
+        h1b.requested_start_date  = fields["LCA_CASE_EMPLOYMENT_START_DATE"]
+        h1b.requested_end_date    = fields["LCA_CASE_EMPLOYMENT_END_DATE"]
+        h1b.job_title             = fields["LCA_CASE_JOB_TITILE"]
+        h1b.soc_code              = fields["LCA_CASE_SOC_CODE"]
+        h1b.soc_name              = fields["LCA_CASE_SOC_NAME"]
+        h1b.naics_name            = fields["LCA_CASE_NAICS_CODE"]
+        h1b.applied_on            = fields["LCA_CASE_SUBMIT"].to_date
+        h1b.decision_on           = fields["Decision_Date"].to_date
+        h1b.pw_published_year1    = fields["YR_SOURCE_PUB_1"]
+        h1b.pw_published_year2    = fields["YR_SOURCE_PUB_2"]
+
+
+        h1b.visa_class       = fields["VISA_CLASS"]
+        h1b.case_status      = fields["STATUS"]
+        h1b.total_workers    = fields["TOTAL_WORKERS"]
+        h1b.pw_other_source1 = fields["OTHER_WAGE_SOURCE_1"]
+        h1b.pw_other_source2 = fields["OTHER_WAGE_SOURCE_2"]
+
+        h1b.full_time_position    = fields["FULL_TIME_POS"].try(:=~,/y/i).present?
+        h1b.save
+      end
     end
 
     task :perm_2004 => :environment do
@@ -71,7 +443,7 @@ namespace :visa do
         end
 
         #2009 file has this as key
-        
+
         perm.decision_on        = decision_date
         perm.pw_soc_code        = fields["Occ_Code"]
         perm.pw_soc_title       = fields["OCC_Title"]
@@ -456,29 +828,5 @@ namespace :visa do
         perm.save
       end
     end
-
-
-
   end
 end
-
-
-#Perm_FY2005
-
-#Perm_FY2006_TEXT
-#
-
-#
-
-=begin
-
-
-
-unzip_to_temp("Perm_FY2007_TEXT.zip")
-
-#
-=end
-
-#process_efile('H1B_efile_FY09_text.zip')
-#process_efile('H1B_efile_FY09_text.zip')
-#system `script/chop tmp/target.txt tmp`
